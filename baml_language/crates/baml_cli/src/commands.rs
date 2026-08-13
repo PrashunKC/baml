@@ -153,7 +153,16 @@ pub(crate) enum Commands {
     #[command(about = "Describe a BAML symbol", name = "describe")]
     Describe(crate::describe_command::DescribeArgs),
 
-    #[command(about = "Generate client code from BAML definitions")]
+    #[command(
+        about = "Generate and manage client libraries (bridges)",
+        long_about = "Generate and manage the client libraries BAML emits for other languages.\n\nA bridge is one `[generator.<name>]` section in `baml.toml`: a target language, an output directory, and the generated code itself. `baml bridge generate` writes them, `--check` verifies they are current without writing, `baml bridge install` prints how to install each runtime, and `baml bridge list` shows what is configured.",
+        after_long_help = "Examples:\n  Add a bridge and see how to install its runtime:\n    baml bridge add python\n\n  Generate every configured bridge:\n    baml bridge generate\n\n  Fail if a bridge is out of date (for CI and pre-commit):\n    baml bridge generate --check\n\n  Show what is configured and whether it is current:\n    baml bridge list"
+    )]
+    Bridge(crate::bridge::BridgeArgs),
+
+    // The pre-`bridge` spelling. Hidden rather than removed: it appears in
+    // existing scripts and CI jobs.
+    #[command(about = "Generate client code from BAML definitions", hide = true)]
     Generate(crate::generate::GenerateArgs),
 
     #[command(about = "Run BAML tests")]
@@ -346,10 +355,30 @@ impl RuntimeCli {
         // guard's drop, after the match below returns, gives the background
         // refresh the rest of its time budget.
         let _skill_check = match &self.command {
-            Commands::Init(_) | Commands::Run(_) | Commands::Generate(_) | Commands::Pack(_) => {
-                crate::skill_check::SkillCheck::start()
-            }
+            Commands::Init(_)
+            | Commands::Run(_)
+            | Commands::Generate(_)
+            | Commands::Bridge(_)
+            | Commands::Pack(_) => crate::skill_check::SkillCheck::start(),
             _ => crate::skill_check::SkillCheck::skipped(),
+        };
+
+        // Passive bridge-freshness warning. Whitelisted to the commands an
+        // author actually runs while editing, so an out-of-date bridge
+        // surfaces without anyone having to ask. Excluded: `playground` and
+        // `lsp` (long-running editor surfaces where a startup line is
+        // noise), machine-facing and account commands, and `bridge` itself,
+        // which either fixes the staleness or reports it precisely.
+        let _bridge_check = match &self.command {
+            Commands::Check(_)
+            | Commands::Run(_)
+            | Commands::Test(_)
+            | Commands::Pack(_)
+            | Commands::Format(_)
+            | Commands::Describe(_) => {
+                crate::bridge::passive::BridgeCheck::start(self.global.project.clone())
+            }
+            _ => crate::bridge::passive::BridgeCheck::skipped(),
         };
 
         match &self.command {
@@ -362,6 +391,7 @@ impl RuntimeCli {
             Commands::Ide(args) => args.run(),
             Commands::Agent(args) => args.run(),
             Commands::Describe(args) => args.run(),
+            Commands::Bridge(args) => args.run(),
             Commands::Generate(args) => args.run(),
             Commands::Test(args) => args.run(),
             Commands::LanguageServer(args) => match args.run() {
@@ -389,6 +419,7 @@ impl Commands {
             Self::Check(args) => args.from.is_some(),
             Self::Format(args) => args.from.is_some(),
             Self::Describe(args) => args.from.is_some(),
+            Self::Bridge(args) => args.has_legacy_project(),
             Self::Generate(args) => args.has_legacy_project(),
             Self::Test(args) => args.from.is_some(),
             Self::Run(args) => args.from.is_some(),
@@ -410,6 +441,7 @@ impl Commands {
             Self::Check(args) => args.from = Some(project.clone()),
             Self::Format(args) => args.from = Some(project.clone()),
             Self::Describe(args) => args.from = Some(project.clone()),
+            Self::Bridge(args) => args.apply_project(&project),
             Self::Generate(args) => args.apply_project(&project),
             Self::Test(args) => args.from = Some(project.clone()),
             Self::Run(args) => args.from = Some(project.clone()),
@@ -468,7 +500,15 @@ mod tests {
         &["feedback"],
         &["fmt"],
         &["describe"],
+        &["bridge"],
+        &["bridge", "generate"],
+        &["bridge", "add"],
+        &["bridge", "install"],
+        &["bridge", "list"],
+        // Hidden from `baml --help`, but still a supported entry point, so
+        // its help must hold to the same standard as the visible commands.
         &["generate"],
+        &["generate", "add"],
         &["test"],
         &["init"],
         &["new"],
@@ -870,6 +910,14 @@ mod tests {
             &["baml", "generate"],
             &["baml", "generate", "--project", "./my-project"],
             &["baml", "generate", "--output-dir", "./generated"],
+            &["baml", "bridge", "add", "python"],
+            &["baml", "bridge", "generate"],
+            &["baml", "bridge", "generate", "--check"],
+            &["baml", "bridge", "generate", "--output-dir", "./generated"],
+            &["baml", "bridge", "install"],
+            &["baml", "bridge", "install", "--project", "./my-project"],
+            &["baml", "bridge", "list"],
+            &["baml", "bridge", "list", "--project", "./my-project"],
             &["baml", "init"],
             &["baml", "init", "./my-project", "--name", "my_project"],
             &["baml", "new", "./my-project"],
