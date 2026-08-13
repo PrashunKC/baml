@@ -23,9 +23,6 @@ Examples:
   Serve a standalone file on a fixed port:
     baml playground --file script.baml --port 4265")]
 pub struct PlaygroundArgs {
-    #[command(flatten)]
-    pub compiler: crate::commands::CompilerArgs,
-
     /// Standalone single-file source. Loads only this file (no project discovery).
     #[arg(long, value_name = "PATH", help_heading = "Project options")]
     pub file: Option<PathBuf>,

@@ -1,6 +1,6 @@
 ---
 source: crates/baml_cli/src/help_command.rs
-expression: "render_for_test(&[\"run\"])"
+expression: "normalize_snapshot(&render_for_test(&[\"run\"]))"
 ---
 Run a BAML function, script, or expression.
 
@@ -36,11 +36,6 @@ Arguments:
           Arguments for the generated target CLI.
 
           With `--function`, the first value is the target subcommand name.
-
-Compiler options:
-  -F, --features <FEATURES>
-          Enable compiler features; repeatable or comma-separated [possible values: beta,
-          display_all_warnings]
 
 Target options:
   -f, --function <NAME>

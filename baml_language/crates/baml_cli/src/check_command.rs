@@ -20,9 +20,6 @@ Examples:
   Check a specific project:
     baml check --project ./my-project")]
 pub struct CheckArgs {
-    #[command(flatten)]
-    pub compiler: crate::commands::CompilerArgs,
-
     /// Deprecated alias for `--project`.
     #[arg(long, value_name = "PATH", hide = true)]
     pub from: Option<PathBuf>,

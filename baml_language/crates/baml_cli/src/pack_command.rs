@@ -64,9 +64,6 @@ Examples:
   Package a function from a standalone file:
     baml pack --file script.baml main")]
 pub struct PackArgs {
-    #[command(flatten)]
-    pub compiler: crate::commands::CompilerArgs,
-
     /// Function to package as the executable's only entry point.
     ///
     /// Mutually exclusive with `--function`.
@@ -705,7 +702,6 @@ mod tests {
 
     fn pack_args() -> PackArgs {
         PackArgs {
-            compiler: crate::commands::CompilerArgs::default(),
             target: None,
             functions: Vec::new(),
             file: None,

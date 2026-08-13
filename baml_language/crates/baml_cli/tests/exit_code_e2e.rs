@@ -1580,11 +1580,7 @@ function get_public_key() -> (AccountRecord as PublicIdentity).Key {
 "#,
     );
 
-    let output = run_baml_cli(
-        built,
-        tmp.path(),
-        &["run", "get_public_key", "--from", ".", "--features", "beta"],
-    );
+    let output = run_baml_cli(built, tmp.path(), &["run", "get_public_key", "--from", "."]);
 
     assert!(
         output.status.success(),
@@ -1668,11 +1664,7 @@ function read_item<T extends BoxLike>(box: T) -> T.Item {
 "#,
     );
 
-    let output = run_baml_cli(
-        built,
-        tmp.path(),
-        &["run", "--list", "--from", ".", "--features", "beta"],
-    );
+    let output = run_baml_cli(built, tmp.path(), &["run", "--list", "--from", "."]);
 
     assert!(
         output.status.success(),
@@ -1708,16 +1700,7 @@ function read_item<T extends BoxLike>(box: T) -> T.Item {
     let json_output = run_baml_cli(
         built,
         tmp.path(),
-        &[
-            "run",
-            "--list",
-            "--output-format",
-            "json",
-            "--from",
-            ".",
-            "--features",
-            "beta",
-        ],
+        &["run", "--list", "--output-format", "json", "--from", "."],
     );
     assert!(
         json_output.status.success(),

@@ -156,9 +156,6 @@ Examples:
   List available targets:
     baml run --list")]
 pub struct RunArgs {
-    #[command(flatten)]
-    pub compiler: crate::commands::CompilerArgs,
-
     /// Function or script to run as the sole entry point.
     ///
     /// Mutually exclusive with `--function` and `--expression`.
@@ -1860,7 +1857,6 @@ mod tests {
     /// fields. Keeps test bodies focused on the field under test.
     fn run_args() -> RunArgs {
         RunArgs {
-            compiler: crate::commands::CompilerArgs::default(),
             target: None,
             functions: Vec::new(),
             expression: None,

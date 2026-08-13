@@ -44,9 +44,6 @@ pub struct GenerateArgs {
     #[command(subcommand)]
     pub command: Option<GenerateCommand>,
 
-    #[command(flatten)]
-    pub compiler: crate::commands::CompilerArgs,
-
     /// Deprecated alias for `--project`.
     #[arg(long, value_name = "PATH", hide = true)]
     pub from: Option<PathBuf>,

@@ -109,20 +109,6 @@ pub(crate) struct GlobalArgs {
     pub project: Option<PathBuf>,
 }
 
-#[derive(Args, Clone, Debug, Default)]
-pub(crate) struct CompilerArgs {
-    #[arg(
-        short = 'F',
-        long = "features",
-        value_name = "FEATURES",
-        value_delimiter = ',',
-        action = clap::ArgAction::Append,
-        help_heading = "Compiler options",
-        help = "Enable compiler features; repeatable or comma-separated [possible values: beta, display_all_warnings]"
-    )]
-    pub features: Vec<String>,
-}
-
 #[derive(Subcommand, Debug)]
 pub(crate) enum Commands {
     // TODO: All other commands are disabled for now as they depend on baml_runtime
@@ -941,29 +927,6 @@ mod tests {
             };
             assert_eq!(args.from, Some(PathBuf::from("workspace")));
         }
-    }
-
-    #[test]
-    fn compiler_features_are_scoped_and_cargo_shaped() {
-        let cli = RuntimeCli::parse_from_smart(vec![
-            "baml".into(),
-            "check".into(),
-            "-F".into(),
-            "beta,display_all_warnings".into(),
-        ]);
-        let Commands::Check(args) = cli.command else {
-            panic!("expected check command");
-        };
-        assert_eq!(args.compiler.features, ["beta", "display_all_warnings"]);
-
-        let help = crate::help_command::render_for_test(&["check"]);
-        assert!(
-            help.contains("Enable compiler features; repeatable or comma-separated"),
-            "{help}"
-        );
-        assert!(help.contains("[possible values: beta,"), "{help}");
-        assert!(help.contains("display_all_warnings]"), "{help}");
-        assert!(!help.contains("Available features:"), "{help}");
     }
 
     #[test]

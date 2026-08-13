@@ -40,9 +40,6 @@ Examples:
   Search for something by what it does:
     baml describe --search 'read a file'")]
 pub struct DescribeArgs {
-    #[command(flatten)]
-    pub compiler: crate::commands::CompilerArgs,
-
     /// Symbol, namespace, package, or keyword. Omit to list project symbols.
     pub name: Option<String>,
 
